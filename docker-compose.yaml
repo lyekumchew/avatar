@@ -1,0 +1,43 @@
+version: "3.1"
+
+services:
+  avatar-api:
+    image: avatarsys/avatar-api
+#    ports:
+#      - "9001:9001"
+    command: python3 manage.py runserver 0.0.0.0:9001
+    depends_on:
+      - postgres
+    restart: always
+
+  avatar-ui:
+    image: avatarsys/avatar-ui
+    volumes:
+      - avatar-ui:/var/www/avatar-ui
+
+  nginx:
+    image: nginx:mainline-alpine
+    depends_on:
+      - avatar-api
+      - avatar-ui
+    ports:
+      - "80:80"
+    volumes:
+      - avatar-ui:/var/www/avatar-ui
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    restart: always
+
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_DB=avatar
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+#    ports:
+#      - "127.0.0.1:5432:5432"
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+
+volumes:
+  avatar-ui:
